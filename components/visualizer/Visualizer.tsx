@@ -16,7 +16,7 @@ import Lasers from './Lasers';
 import CameraRig from './CameraRig';
 import AudioControls from './AudioControls';
 
-const CAMERA = { position: [0, 1.2, 7] as [number, number, number], fov: 55 };
+const CAMERA = { position: [0, 2.4, 13.8] as [number, number, number], fov: 55 };
 const DPR: [number, number] = [1, 1.75];
 const GL = { antialias: false, powerPreference: 'high-performance' as const };
 
@@ -74,8 +74,8 @@ const VisualizerScene = memo(function VisualizerScene({
         dampingFactor={0.05}
         autoRotate
         autoRotateSpeed={0.5}
-        minDistance={3}
-        maxDistance={14}
+        minDistance={10}
+        maxDistance={18}
       />
     </Canvas>
   );

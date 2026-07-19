@@ -6,8 +6,8 @@ export type LasersConfig = {
 };
 
 export const LASERS_DEFAULTS: LasersConfig = {
-  intensity: 1,
-  brightness: 1,
-  sweep: 1,
-  threshold: 0.5,
+  intensity: 1.2,
+  brightness: 3,
+  sweep: 0.7,
+  threshold: 0,
 };

@@ -8,10 +8,10 @@ export type ParticlesConfig = {
 };
 
 export const PARTICLES_DEFAULTS: ParticlesConfig = {
-  count: 40000,
-  size: 0.14,
-  brightness: 1,
-  flowSpeed: 0.35,
-  noiseScale: 0.5,
-  noiseAmp: 0.7,
+  count: 78000,
+  size: 0.13,
+  brightness: 0.3,
+  flowSpeed: 0.15,
+  noiseScale: 0.45,
+  noiseAmp: 1,
 };

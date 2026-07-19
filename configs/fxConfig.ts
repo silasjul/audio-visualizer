@@ -8,10 +8,10 @@ export type FxConfig = {
 };
 
 export const FX_DEFAULTS: FxConfig = {
-  glow: 0.08,
-  glowPunch: 0.3,
-  darkness: 0.78,
-  chroma: 0.0005,
+  glow: 0.07,
+  glowPunch: 0.15,
+  darkness: 0.23,
+  chroma: 0.0008,
   chromaPunch: 0.0045,
   grain: 0.28,
 };

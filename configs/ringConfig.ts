@@ -5,7 +5,7 @@ export type RingConfig = {
 };
 
 export const RING_DEFAULTS: RingConfig = {
-  radius: 2.05,
-  height: 1,
-  brightness: 1,
+  radius: 2.65,
+  height: 1.35,
+  brightness: 0.3,
 };

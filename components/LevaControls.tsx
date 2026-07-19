@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Leva } from 'leva';
+import { button, Leva, useControls } from 'leva';
+import { useLevaStore } from '@/stores/levaStore';
 import { useAudioTweaks } from '@/hooks/leva/useAudioTweaks';
 import { useCoreTweaks } from '@/hooks/leva/useCoreTweaks';
 import { useParticlesTweaks } from '@/hooks/leva/useParticlesTweaks';
@@ -20,6 +21,14 @@ export default function LevaControls() {
   useLasersTweaks();
   useRingTweaks();
   useStarsTweaks();
+
+  useControls({
+    'log configs': button(() => {
+      const { cube, audio, core, particles, bloom, fx, lasers, ring, stars } =
+        useLevaStore.getState();
+      console.log({ cube, audio, core, particles, bloom, fx, lasers, ring, stars });
+    }),
+  });
 
   const [hidden, setHidden] = useState(false);
 

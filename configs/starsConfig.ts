@@ -4,6 +4,6 @@ export type StarsConfig = {
 };
 
 export const STARS_DEFAULTS: StarsConfig = {
-  size: 0.55,
+  size: 2,
   brightness: 1,
 };
