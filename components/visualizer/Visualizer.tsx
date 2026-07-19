@@ -1,14 +1,19 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { useAudioAnalyser, type LevelsRef } from '@/hooks/useAudioAnalyser';
 import { useLevaStore } from '@/stores/levaStore';
 import { PALETTES } from '@/configs/palettes';
 import Core from './Core';
 import Particles from './Particles';
 import Effects from './Effects';
+import SpectrumRing from './SpectrumRing';
+import Starfield from './Starfield';
+import Lasers from './Lasers';
+import CameraRig from './CameraRig';
 import AudioControls from './AudioControls';
 
 const CAMERA = { position: [0, 1.2, 7] as [number, number, number], fov: 55 };
@@ -20,8 +25,19 @@ function AudioFrame({ update }: { update: (dt: number) => void }) {
   return null;
 }
 
-function Backdrop() {
+function Backdrop({ levels }: { levels: LevelsRef }) {
   const palette = PALETTES[useLevaStore((s) => s.core.palette)];
+  const scratch = useMemo(() => new THREE.Color(), []);
+
+  useFrame(({ scene }) => {
+    const a = levels.current;
+    scratch
+      .set(palette.background)
+      .offsetHSL(a.styleHue + a.hueDrift, 0.04 * a.styleEnergy, a.beat * 0.012 + a.styleTension * 0.02);
+    if (scene.background instanceof THREE.Color) scene.background.copy(scratch);
+    if (scene.fog) scene.fog.color.copy(scratch);
+  });
+
   return (
     <>
       <color attach="background" args={[palette.background]} />
@@ -41,11 +57,15 @@ const VisualizerScene = memo(function VisualizerScene({
 }) {
   return (
     <Canvas camera={CAMERA} dpr={DPR} gl={GL}>
-      <Backdrop />
+      <Backdrop levels={levels} />
       <AudioFrame update={update} />
       <ambientLight intensity={0.15} />
       <Core levels={levels} />
       <Particles levels={levels} />
+      <SpectrumRing levels={levels} />
+      <Starfield levels={levels} />
+      <Lasers levels={levels} />
+      <CameraRig levels={levels} />
       <Effects levels={levels} />
       <OrbitControls
         makeDefault
@@ -70,8 +90,11 @@ export default function Visualizer() {
       <AudioControls
         isPlaying={audio.isPlaying}
         trackName={audio.trackName}
+        duration={audio.duration}
+        currentTime={audio.currentTime}
         onFile={audio.loadFile}
         onToggle={audio.togglePlay}
+        onSeek={audio.seek}
       />
     </div>
   );

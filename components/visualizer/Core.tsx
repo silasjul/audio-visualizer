@@ -34,6 +34,7 @@ export default function Core({ levels }: { levels: LevelsRef }) {
   const group = useRef<THREE.Group>(null);
   const material = useRef<ComponentRef<typeof MeshDistortMaterial>>(null);
   const rim = useRef<THREE.ShaderMaterial>(null);
+  const wire = useRef<THREE.Mesh>(null);
   const cfg = useLevaStore((s) => s.core);
   const palette = PALETTES[cfg.palette];
 
@@ -45,22 +46,46 @@ export default function Core({ levels }: { levels: LevelsRef }) {
     []
   );
 
+  const baseColors = useRef({
+    color: new THREE.Color(),
+    emissive: new THREE.Color(),
+    rim: new THREE.Color(),
+  });
+
   useEffect(() => {
-    rim.current?.uniforms.uColor.value.set(palette.rim);
+    baseColors.current.color.set(palette.core);
+    baseColors.current.emissive.set(palette.coreEmissive);
+    baseColors.current.rim.set(palette.rim);
   }, [palette]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, dt) => {
     const a = levels.current;
+    const energy = a.styleEnergy;
+    const hue = a.styleHue + a.hueDrift;
+    const glowScale = 0.55 + 0.55 * energy;
     const idle = 0.05 * Math.sin(clock.elapsedTime * 1.4);
-    const scale = cfg.baseScale * (1 + idle + a.bass * cfg.bassPulse + a.beat * 0.18);
+    const scale =
+      cfg.baseScale * (1 + idle + a.bass * cfg.bassPulse * (0.55 + 0.55 * energy) + a.beat * 0.18);
     group.current?.scale.setScalar(scale);
+    const base = baseColors.current;
     if (material.current) {
       material.current.emissiveIntensity =
-        cfg.glow + a.bass * cfg.glowPunch + a.beat * cfg.glowPunch * 0.8;
-      material.current.distort = cfg.distort + a.bass * 0.35;
+        (cfg.glow + a.bass * cfg.glowPunch + a.beat * cfg.glowPunch * 0.8) * glowScale;
+      material.current.distort = cfg.distort + a.bass * 0.35 + a.styleTension * 0.18;
+      material.current.color.copy(base.color).offsetHSL(hue, a.styleSat, a.styleLight);
+      material.current.emissive.copy(base.emissive).offsetHSL(hue, a.styleSat, a.styleLight);
     }
     if (rim.current) {
-      rim.current.uniforms.uIntensity.value = 0.35 + a.treble * 1.1 + a.beat * 0.9;
+      rim.current.uniforms.uIntensity.value =
+        (0.35 + a.treble * 1.1 + a.beat * 0.9) * (0.6 + 0.5 * energy);
+      rim.current.uniforms.uColor.value.copy(base.rim).offsetHSL(hue, a.styleSat, a.styleLight);
+    }
+    if (wire.current) {
+      wire.current.rotation.y -= dt * (0.15 + energy * 0.25 + a.beat * 0.6);
+      wire.current.rotation.x += dt * 0.07;
+      const m = wire.current.material as THREE.MeshBasicMaterial;
+      m.opacity = 0.07 + a.treble * 0.5 + a.beat * 0.3;
+      m.color.copy(base.rim).offsetHSL(hue + 0.12, a.styleSat, a.styleLight);
     }
   });
 
@@ -90,6 +115,17 @@ export default function Core({ levels }: { levels: LevelsRef }) {
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      <mesh ref={wire} scale={1.5}>
+        <icosahedronGeometry args={[0.85, 1]} />
+        <meshBasicMaterial
+          wireframe
+          transparent
+          opacity={0.08}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
         />
       </mesh>
     </group>

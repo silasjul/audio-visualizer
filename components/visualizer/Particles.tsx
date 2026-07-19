@@ -43,6 +43,8 @@ export default function Particles({ levels }: { levels: LevelsRef }) {
   const palette = PALETTES[useLevaStore((s) => s.core.palette)];
   const material = useRef<THREE.ShaderMaterial>(null);
   const flowTime = useRef(0);
+  const scaleMod = useRef(1);
+  const baseColors = useRef({ a: new THREE.Color(), b: new THREE.Color(), hot: new THREE.Color() });
 
   const { positions, seeds } = useMemo(() => buildAttributes(cfg.count), [cfg.count]);
 
@@ -55,7 +57,10 @@ export default function Particles({ levels }: { levels: LevelsRef }) {
       uBass: { value: 0 },
       uTreble: { value: 0 },
       uBeat: { value: 0 },
+      uEnergy: { value: 1 },
+      uTension: { value: 0 },
       uBrightness: { value: 1 },
+      uHueShift: { value: 0 },
       uColorA: { value: new THREE.Color() },
       uColorB: { value: new THREE.Color() },
       uColorHot: { value: new THREE.Color() },
@@ -64,30 +69,44 @@ export default function Particles({ levels }: { levels: LevelsRef }) {
   );
 
   useEffect(() => {
-    const u = material.current?.uniforms;
-    if (!u) return;
-    u.uColorA.value.set(palette.particleA);
-    u.uColorB.value.set(palette.particleB);
-    u.uColorHot.value.set(palette.hot);
+    baseColors.current.a.set(palette.particleA);
+    baseColors.current.b.set(palette.particleB);
+    baseColors.current.hot.set(palette.hot);
   }, [palette]);
 
   useFrame((_, dt) => {
     const mat = material.current;
     if (!mat) return;
     const a = levels.current;
+    const energy = a.styleEnergy;
+    // chill sections crawl, hype sections race
     flowTime.current +=
-      dt * cfg.flowSpeed * (1 + a.bass * FLOW_BASS_BOOST + a.beat * FLOW_BEAT_BOOST);
+      dt *
+      cfg.flowSpeed *
+      (0.2 + 0.6 * energy + a.styleTension * 1.5 + a.bass * FLOW_BASS_BOOST + a.beat * FLOW_BEAT_BOOST);
+    // eased slowly: positions are a pure function of noiseScale, so fast changes would
+    // teleport particles instead of morphing the flow
+    const scaleTarget = 0.45 + 0.55 * energy + a.styleTension * 0.35;
+    scaleMod.current += (scaleTarget - scaleMod.current) * (1 - Math.exp(-dt * 1.2));
     const u = mat.uniforms;
     u.uTime.value = flowTime.current;
-    u.uNoiseScale.value = cfg.noiseScale;
-    u.uNoiseAmp.value = cfg.noiseAmp;
+    u.uNoiseScale.value = cfg.noiseScale * scaleMod.current;
+    u.uNoiseAmp.value = cfg.noiseAmp * (0.75 + 0.45 * energy);
     u.uSize.value = cfg.size;
     u.uBass.value = a.bass;
     u.uTreble.value = a.treble;
     u.uBeat.value = a.beat;
+    u.uEnergy.value = energy;
+    u.uTension.value = a.styleTension;
     u.uBrightness.value =
       cfg.brightness *
-      (BRIGHTNESS_FLOOR + a.level * BRIGHTNESS_LEVEL_BOOST + a.beat * BRIGHTNESS_BEAT_BOOST);
+      (BRIGHTNESS_FLOOR + a.level * BRIGHTNESS_LEVEL_BOOST + a.beat * BRIGHTNESS_BEAT_BOOST) *
+      (0.55 + 0.55 * energy);
+    u.uHueShift.value = a.hueDrift * Math.PI * 2;
+    const base = baseColors.current;
+    u.uColorA.value.copy(base.a).offsetHSL(a.styleHue, a.styleSat, a.styleLight);
+    u.uColorB.value.copy(base.b).offsetHSL(a.styleHue, a.styleSat, a.styleLight);
+    u.uColorHot.value.copy(base.hot);
   });
 
   return (

@@ -6,12 +6,20 @@ import { useAudioTweaks } from '@/hooks/leva/useAudioTweaks';
 import { useCoreTweaks } from '@/hooks/leva/useCoreTweaks';
 import { useParticlesTweaks } from '@/hooks/leva/useParticlesTweaks';
 import { useBloomTweaks } from '@/hooks/leva/useBloomTweaks';
+import { useFxTweaks } from '@/hooks/leva/useFxTweaks';
+import { useLasersTweaks } from '@/hooks/leva/useLasersTweaks';
+import { useRingTweaks } from '@/hooks/leva/useRingTweaks';
+import { useStarsTweaks } from '@/hooks/leva/useStarsTweaks';
 
 export default function LevaControls() {
   useAudioTweaks();
   useCoreTweaks();
   useParticlesTweaks();
   useBloomTweaks();
+  useFxTweaks();
+  useLasersTweaks();
+  useRingTweaks();
+  useStarsTweaks();
 
   const [hidden, setHidden] = useState(false);
 

@@ -26,6 +26,24 @@ export const PALETTES = {
     particleB: '#f59e0b',
     hot: '#fff7ed',
   },
+  aurora: {
+    background: '#02100d',
+    core: '#059669',
+    coreEmissive: '#34d399',
+    rim: '#a7f3d0',
+    particleA: '#065f46',
+    particleB: '#22d3ee',
+    hot: '#ecfdf5',
+  },
+  neon: {
+    background: '#0a0114',
+    core: '#db2777',
+    coreEmissive: '#f472b6',
+    rim: '#22d3ee',
+    particleA: '#7c3aed',
+    particleB: '#f43f5e',
+    hot: '#fdf2f8',
+  },
 } as const;
 
 export type PaletteName = keyof typeof PALETTES;

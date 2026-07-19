@@ -94,12 +94,15 @@ uniform float uSize;
 uniform float uBass;
 uniform float uTreble;
 uniform float uBeat;
+uniform float uEnergy;
+uniform float uTension;
 
 attribute vec4 aSeed;
 
 varying float vColorMix;
 varying float vGlow;
 varying float vFade;
+varying float vHue;
 
 ${simplexNoise}
 ${curlNoise}
@@ -112,6 +115,8 @@ void main() {
   float streamId = floor(aSeed.y * 8.0);
   float sr = fract(sin(streamId * 91.3458) * 47453.5453);
   float radius = mix(1.7, 3.8, sr) + (aSeed.x - 0.5) * 0.7;
+  // buildups pull the streams inward around the core — released on the drop
+  radius *= 1.0 - 0.35 * uTension;
   float dir = sr > 0.5 ? 1.0 : -1.0;
   float angle = position.x * TAU + uTime * mix(0.25, 0.6, fract(sr * 3.7)) * dir;
 
@@ -127,12 +132,13 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
 
-  float size = uSize * mix(0.5, 1.6, position.z) * (1.0 + uTreble * 1.2 + uBeat * 0.8);
+  float size = uSize * mix(0.5, 1.6, position.z) * (1.0 + uTreble * 1.2 + uBeat * 0.8) * (0.75 + 0.4 * uEnergy);
   gl_PointSize = size * (220.0 / -mv.z);
 
   vColorMix = aSeed.w;
   vGlow = uBeat;
   vFade = smoothstep(26.0, 6.0, -mv.z);
+  vHue = aSeed.x - 0.5;
 }
 `;
 
@@ -141,10 +147,18 @@ uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform vec3 uColorHot;
 uniform float uBrightness;
+uniform float uHueShift;
 
 varying float vColorMix;
 varying float vGlow;
 varying float vFade;
+varying float vHue;
+
+vec3 hueRotate(vec3 c, float a) {
+  const vec3 k = vec3(0.57735026919);
+  float cs = cos(a);
+  return c * cs + cross(k, c) * sin(a) + k * dot(k, c) * (1.0 - cs);
+}
 
 void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
@@ -153,6 +167,7 @@ void main() {
   if (alpha < 0.01) discard;
 
   vec3 col = mix(uColorA, uColorB, vColorMix);
+  col = hueRotate(col, uHueShift + vHue * 1.2);
   col = mix(col, uColorHot, vGlow * 0.6);
   col += uColorHot * pow(falloff, 6.0) * 0.6;
 
