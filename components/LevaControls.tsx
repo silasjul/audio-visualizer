@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { Leva } from 'leva';
-import { useCubeTweaks } from '@/hooks/leva/useCubeTweaks';
+import { useAudioTweaks } from '@/hooks/leva/useAudioTweaks';
+import { useCoreTweaks } from '@/hooks/leva/useCoreTweaks';
+import { useParticlesTweaks } from '@/hooks/leva/useParticlesTweaks';
+import { useBloomTweaks } from '@/hooks/leva/useBloomTweaks';
 
 export default function LevaControls() {
-  useCubeTweaks();
+  useAudioTweaks();
+  useCoreTweaks();
+  useParticlesTweaks();
+  useBloomTweaks();
 
   const [hidden, setHidden] = useState(false);
 
@@ -22,5 +28,5 @@ export default function LevaControls() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  return <Leva collapsed hidden={hidden} />;
+  return <Leva hidden={hidden} />;
 }
